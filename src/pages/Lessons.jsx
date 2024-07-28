@@ -10,16 +10,17 @@ import {
   TableSortLabel,
   Paper,
   TextField,
-  Button
+  Button,
+  Checkbox
 } from '@mui/material';
 
-function createData(name, price, pay, lessonDate, paymentDate) {
-  return { name, price, pay, lessonDate, paymentDate };
+function createData(name, price, pay, lessonDate, paymentDate, reception) {
+  return { name, price, pay, lessonDate, paymentDate, reception };
 }
 
 const initialRows = [
-  createData('Lesson 1', 10, 5, '2023-01-01', '2023-01-05'),
-  createData('Lesson 2', 15, 7, '2023-02-01', '2023-02-05'),
+  createData('Lesson 1', 10, 5, '2023-01-01', '2023-01-05', true),
+  createData('Lesson 2', 15, 7, '2023-02-01', '2023-02-05', false),
   // Add more rows as needed
 ];
 
@@ -29,6 +30,7 @@ const headCells = [
   { id: 'pay', label: 'Pay in this lesson' },
   { id: 'lessonDate', label: 'Lesson Date' },
   { id: 'paymentDate', label: 'Date of payment' },
+  { id: 'reception', label: 'Reception' },
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -93,6 +95,7 @@ export default function EnhancedTable() {
   const [rows, setRows] = useState(initialRows);
   const [editableRow, setEditableRow] = useState(null);
   const [editData, setEditData] = useState({});
+  const [monthFilter, setMonthFilter] = useState('');
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -115,8 +118,11 @@ export default function EnhancedTable() {
   };
 
   const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setEditData({ ...editData, [name]: value });
+    const { name, value, type, checked } = event.target;
+    setEditData({
+      ...editData,
+      [name]: type === 'checkbox' ? checked : value
+    });
   };
 
   const handleSaveChanges = () => {
@@ -130,6 +136,12 @@ export default function EnhancedTable() {
 
   return (
     <Paper sx={{ width: '100%', mb: 2 }}>
+      <TextField
+        label="Filter by Month (YYYY-MM)"
+        value={monthFilter}
+        onChange={(e) => setMonthFilter(e.target.value)}
+        sx={{ m: 2 }}
+      />
       <TableContainer>
         <Table>
           <EnhancedTableHead
@@ -138,7 +150,16 @@ export default function EnhancedTable() {
             onRequestSort={handleRequestSort}
           />
           <TableBody>
-            {stableSort(rows, getComparator(order, orderBy))
+            {stableSort(
+              rows.filter(row => {
+                if (!monthFilter) return true;
+                const lessonDate = new Date(row.lessonDate);
+                const filterDate = new Date(monthFilter + '-01');
+                return lessonDate.getFullYear() === filterDate.getFullYear() &&
+                      lessonDate.getMonth() === filterDate.getMonth();
+              }),
+              getComparator(order, orderBy)
+            )
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, index) => (
                 <TableRow hover key={index}>
@@ -199,6 +220,20 @@ export default function EnhancedTable() {
                       />
                     ) : (
                       row.paymentDate
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {editableRow === index ? (
+                      <Checkbox
+                        name="reception"
+                        checked={editData.reception}
+                        onChange={handleInputChange}
+                      />
+                    ) : (
+                      <Checkbox
+                        checked={row.reception}
+                        disabled
+                      />
                     )}
                   </TableCell>
                   <TableCell>

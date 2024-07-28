@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Drawer, CssBaseline } from "@mui/material";
 import { Outlet, Link } from "react-router-dom";
 import HomeIcon from '@mui/icons-material/Home';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SubjectIcon from '@mui/icons-material/Subject';
+import { Resizable } from "react-resizable";
+import 'react-resizable/css/styles.css';
 
 export default function Layout() {
-    const drawerWidth = 240;
+    const [drawerWidth, setDrawerWidth] = useState(240);
 
-    // Map of text to paths and icons
     const menuItems = [
         { text: 'Home', icon: <HomeIcon />, path: '/' },
         { text: 'Add lesson', icon: <AddCircleOutlineIcon />, path: '/create' },
@@ -16,7 +17,7 @@ export default function Layout() {
     ];
 
     const DrawerList = (
-        <Box sx={{ width: drawerWidth }} role="presentation">
+        <Box sx={{ width: '100%'}} role="presentation">
             <List>
                 {menuItems.map((item) => (
                     <ListItem key={item.text}>
@@ -32,22 +33,44 @@ export default function Layout() {
         </Box>
     );
 
+    const handleResize = (e, { size }) => {
+        setDrawerWidth(size.width);
+    };
+
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <Drawer
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0
-                }}
-                variant="permanent"
-                open
+            <Resizable 
+                width={drawerWidth}
+                height={0}
+                axis="x"
+                minConstraints={[150, 0]}
+                maxConstraints={[400, 0]}
+                onResize={handleResize}
             >
-                {DrawerList}
-            </Drawer>
+                <Drawer
+                    sx={{
+                        width: drawerWidth,
+                        flexShrink: 0,
+                        '& .MuiDrawer-paper': {
+                            width: drawerWidth,
+                            boxSizing: 'border-box'
+                        }
+                    }}
+                    variant="permanent"
+                >
+                    {DrawerList}
+                </Drawer>
+            </Resizable>
             <Box
                 component="main"
-                sx={{ flexGrow: 1 }}
+                sx={{
+                    flexGrow: 1,
+                    marginLeft: 0,
+                    transition: 'margin 0.3s',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}
             >
                 <Outlet />
             </Box>

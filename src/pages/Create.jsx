@@ -48,7 +48,7 @@ export default function Create() {
     { value: "Cash", label: "Cash" },
     { value: "Bit", label: "Bit" },
     { value: "Paybox", label: "Paybox" },
-    { value: "Transktion", label: "Transktion" },
+    { value: "Bank transfer", label: "Bank transfer" },
     { value: "Nopayment", label: "No payment" },
   ];
 
@@ -95,6 +95,7 @@ export default function Create() {
               <Box display="flex" justifyContent="center">
                 <DateCalendar
                   onChange={(date) => handleDateChange(date)}
+
                 />
               </Box>
             </LocalizationProvider>

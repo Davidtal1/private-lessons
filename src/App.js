@@ -3,12 +3,14 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Lessons from "./pages/Lessons";
 import Create from "./pages/Create";
 import Layout from "./components/Layout";
+import Home from "./pages/Home";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
           <Route path="lessons" element={<Lessons />} />
           <Route path="create" element={<Create />} />
         </Route>
