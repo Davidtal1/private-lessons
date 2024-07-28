@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -13,27 +13,14 @@ import {
   Button,
   Checkbox
 } from '@mui/material';
-
-function createData(name, price, pay, lessonDate, paymentDate, reception) {
-  return { name, price, pay, lessonDate, paymentDate, reception };
-}
-
-const initialRows = [
-  createData('Lesson 1', 10, 5, '2023-01-01', '2023-01-05', true),
-  createData('Lesson 2', 15, 7, '2023-02-01', '2023-02-05', false),
-  createData('Lesson 3', 10, 5, '2024-01-01', '2023-01-05', true),
-  createData('Lesson 4', 15, 7, '2023-04-01', '2023-02-05', false),
-  createData('Lesson 5', 10, 5, '2023-07-01', '2023-01-05', true),
-  createData('Lesson 6', 15, 7, '2023-02-08', '2023-02-05', false),
-  // Add more rows as needed
-];
+import axios from 'axios';
 
 const headCells = [
   { id: 'name', label: 'Name' },
   { id: 'price', label: 'Price for lesson' },
-  { id: 'pay', label: 'Pay in this lesson' },
-  { id: 'lessonDate', label: 'Lesson Date' },
-  { id: 'paymentDate', label: 'Date of payment' },
+  { id: 'payment', label: 'Pay in this lesson' },
+  { id: 'lessondate', label: 'Lesson Date' },
+  { id: 'date', label: 'Date of payment' },
   { id: 'reception', label: 'Reception' },
 ];
 
@@ -96,11 +83,23 @@ export default function EnhancedTable() {
   const [orderBy, setOrderBy] = useState('name');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [rows, setRows] = useState(initialRows);
+  const [rows, setRows] = useState([]);
   const [editableRow, setEditableRow] = useState(null);
   const [editData, setEditData] = useState({});
   const [monthFilter, setMonthFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/get_lessons');
+        setRows(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -118,8 +117,9 @@ export default function EnhancedTable() {
   };
 
   const handleEditClick = (index) => {
-    setEditableRow(index);
-    setEditData({ ...rows[index] });
+    const globalIndex = page * rowsPerPage + index;
+    setEditableRow(globalIndex);
+    setEditData({ ...rows[globalIndex] });
   };
 
   const handleInputChange = (event) => {
@@ -130,13 +130,18 @@ export default function EnhancedTable() {
     });
   };
 
-  const handleSaveChanges = () => {
-    const updatedRows = rows.map((row, index) =>
-      index === editableRow ? { ...editData } : row
-    );
-    setRows(updatedRows);
-    setEditableRow(null);
-    setEditData({});
+  const handleSaveChanges = async () => {
+    try {
+      await axios.put(`http://localhost:5000/update_lesson/${editData._id}`, editData);
+      const updatedRows = rows.map((row, index) =>
+        index === editableRow ? { ...editData } : row
+      );
+      setRows(updatedRows);
+      setEditableRow(null);
+      setEditData({});
+    } catch (error) {
+      console.error('Error updating data:', error);
+    }
   };
 
   return (
@@ -165,106 +170,107 @@ export default function EnhancedTable() {
           <TableBody>
             {stableSort(
               rows.filter(row => {
-                if (!monthFilter) return true;
-                // const lessonDate = row.lessonDate;
-                // const filterDate = new Date(yearFilter,monthFilter);
-                // console.log(filterDate);
-                // return lessonDate.getFullYear() === filterDate.getFullYear() &&
-                //       lessonDate.getMonth() === filterDate.getMonth();
+                if (!monthFilter && !yearFilter) return true;
+                const lessonDate = new Date(row.lessondate);
+                const lessonMonth = lessonDate.getMonth() + 1; 
+                const lessonYear = lessonDate.getFullYear();
+                const paymentDate = new Date(row.date);
+                const paymentMonth = paymentDate.getMonth() + 1; 
+                const paymentYear = paymentDate.getFullYear();
 
-
-                const date = new Date(row.lessonDate);
-                const month = date.getMonth() + 1; // Months are zero-indexed, so we add 1
-                const year = date.getFullYear();
-                return year === Number(yearFilter) && month === Number(monthFilter);
+                return (yearFilter && (lessonYear === Number(yearFilter) || paymentYear === Number(yearFilter))) && 
+                       (monthFilter && (lessonMonth === Number(monthFilter) || paymentMonth === Number(monthFilter)));
               }),
               getComparator(order, orderBy)
             )
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <TableRow hover key={index}>
-                  <TableCell>
-                    {editableRow === index ? (
-                      <TextField
-                        name="name"
-                        value={editData.name}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      row.name
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editableRow === index ? (
-                      <TextField
-                        name="price"
-                        type="number"
-                        value={editData.price}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      row.price
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editableRow === index ? (
-                      <TextField
-                        name="pay"
-                        type="number"
-                        value={editData.pay}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      row.pay
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editableRow === index ? (
-                      <TextField
-                        name="lessonDate"
-                        type="date"
-                        value={editData.lessonDate}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      row.lessonDate
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editableRow === index ? (
-                      <TextField
-                        name="paymentDate"
-                        type="date"
-                        value={editData.paymentDate}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      row.paymentDate
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editableRow === index ? (
-                      <Checkbox
-                        name="reception"
-                        checked={editData.reception}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      <Checkbox
-                        checked={row.reception}
-                        disabled
-                      />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editableRow === index ? (
-                      <Button onClick={handleSaveChanges}>Save</Button>
-                    ) : (
-                      <Button onClick={() => handleEditClick(index)}>Edit</Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+              .map((row, index) => {
+                const isRowEditable = editableRow === (page * rowsPerPage + index);
+                return (
+                  <TableRow hover key={index}>
+                    <TableCell>
+                      {isRowEditable ? (
+                        <TextField
+                          name="name"
+                          value={editData.name}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        row.name
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isRowEditable ? (
+                        <TextField
+                          name="price"
+                          type="number"
+                          value={editData.price}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        row.price
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isRowEditable ? (
+                        <TextField
+                          name="payment"
+                          type="number"
+                          value={editData.payment}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        row.payment
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isRowEditable ? (
+                        <TextField
+                          name="lessondate"
+                          type="date"
+                          value={editData.lessondate}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        row.lessondate
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isRowEditable ? (
+                        <TextField
+                          name="date"
+                          type="date"
+                          value={editData.date}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        row.date
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isRowEditable ? (
+                        <Checkbox
+                          name="reception"
+                          checked={editData.reception}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        <Checkbox
+                          checked={row.reception}
+                          disabled
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isRowEditable ? (
+                        <Button onClick={handleSaveChanges}>Save</Button>
+                      ) : (
+                        <Button onClick={() => handleEditClick(index)}>Edit</Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
           </TableBody>
         </Table>
       </TableContainer>
