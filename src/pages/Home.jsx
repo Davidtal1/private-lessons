@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { TextField, Autocomplete, Typography, Button, Box } from "@mui/material";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Typography, Box } from "@mui/material";
+import PaymentDistribution from "../components/PaymentDistribution";
+import HomeCalc from "../components/HomeCalc";
 
 export default function Home() {
     const years = Array.from({ length: 51 }, (_, i) => 2000 + i);
@@ -33,88 +34,36 @@ export default function Home() {
 
     return (
         <div style={{ backgroundColor: '#b2dfdb', padding: '16px' }}>
-            <Typography
-                variant="h4"
-                color="textSecondary"
-                gutterBottom
-                component="h2"
-                sx={{ textAlign: 'center' }} // Center align the heading
-            >
-                Calculate the profit
-            </Typography>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <Autocomplete
-                    disablePortal
-                    id="year-combo-box"
-                    options={years}
-                    value={currentYear}
-                    onChange={(event, newValue) => {
-                        setYear(newValue);
-                    }}
-                    sx={{ width: '100%' }} // Make input full width
-                    renderInput={(params) => <TextField {...params} label="Year" fullWidth />}
-                />
-
-                <Autocomplete
-                    disablePortal
-                    id="month-combo-box"
-                    options={months}
-                    value={currentMonth}
-                    onChange={(event, newValue) => {
-                        setMonth(newValue);
-                    }}
-                    sx={{ width: '100%' }} // Make input full width
-                    renderInput={(params) => <TextField {...params} label="Month" fullWidth />}
-                />
-
-                <Button variant="contained" onClick={handleCalculate} sx={{ backgroundColor: '#397145', color: 'black', width: '100%' }}>
-                    Calc
-                </Button>
-            </div>
+            <HomeCalc
+            key={currentYear}
+            years={years}
+            currentYear={currentYear}
+            setYear={setYear}
+            months={months}
+            setMonth={setMonth} 
+            currentMonth={currentMonth} 
+            handleCalculate={handleCalculate}
+            ></HomeCalc>
 
             {showResult && (
-                <>
-                    <Box
-                        sx={{
-                            marginTop: '16px',
-                            padding: '16px',
-                            backgroundColor: '#ffffff',
-                            borderRadius: '4px',
-                            textAlign: 'center',
-                            boxShadow: 3,
-                        }}
-                    >
-                        <Typography variant="h6" color="textPrimary">
-                            Profit for {currentMonth}/{currentYear}: ₪{calculateProfit()}
-                        </Typography>
-                    </Box>
-
-                    <Box
-                        sx={{
-                            marginTop: '16px',
-                            padding: '16px',
-                            backgroundColor: '#e0f7fa',
-                            borderRadius: '4px',
-                            textAlign: 'center',
-                            boxShadow: 3,
-                        }}
-                    >
-                        <Typography variant="h6" color="textPrimary" gutterBottom>
-                            Payment Distribution
-                        </Typography>
-                        <ResponsiveContainer width="100%" height={150}>
-                            <BarChart data={paymentData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="amount" fill="#82ca9d" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </Box>
-                </>
-            )}
+            <div>
+                <Box
+                    sx={{
+                        marginTop: '16px',
+                        padding: '16px',
+                        backgroundColor: '#ffffff',
+                        borderRadius: '4px',
+                        textAlign: 'center',
+                        boxShadow: 3,
+                    }}
+                >
+                    <Typography variant="h6" color="textPrimary">
+                        Profit for {currentMonth}/{currentYear}: ₪{calculateProfit()}
+                    </Typography>
+                </Box>
+                <PaymentDistribution key={paymentData.name} paymentData={paymentData}/>
+            </div>
+                )}
         </div>
     );
 }
