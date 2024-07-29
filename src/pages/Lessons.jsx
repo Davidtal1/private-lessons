@@ -1,85 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
   Table,
-  TableBody,
-  TableCell,
   TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TableSortLabel,
   Paper,
   TextField,
-  Button,
-  Checkbox
+  TablePagination
 } from '@mui/material';
 import axios from 'axios';
+import EnhancedTableHead from '../components/EnhancedTableHead';
+import EnhancedTableBody from '../components/EnhancedTableBody';
+import { stableSort, getComparator } from '../components/sortingUtils';
 
-const headCells = [
-  { id: 'name', label: 'Name' },
-  { id: 'price', label: 'Price for lesson' },
-  { id: 'payment', label: 'Pay in this lesson' },
-  { id: 'lessonDate', label: 'Lesson Date' },
-  { id: 'date', label: 'Date of payment' },
-  { id: 'payment_method', label: 'Method pay' },
-  { id: 'reception', label: 'Reception' },
-];
-
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function stableSort(array, comparator) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  return stabilizedThis.map((el) => el[0]);
-}
-
-function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort } = props;
-  const createSortHandler = (property) => (event) => {
-    onRequestSort(event, property);
-  };
-
-  return (
-    <TableHead>
-      <TableRow>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            sortDirection={orderBy === headCell.id ? order : false}
-          >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
-              onClick={createSortHandler(headCell.id)}
-            >
-              {headCell.label}
-            </TableSortLabel>
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  );
-}
-
-export default function EnhancedTable() {
+const EnhancedTable = () => {
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('name');
   const [page, setPage] = useState(0);
@@ -95,7 +27,7 @@ export default function EnhancedTable() {
     const fetchData = async () => {
       try {
         const response = await axios.get('http://localhost:5000/get_lessons');
-        setOriginalRows(response.data); // Store the original data
+        setOriginalRows(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -104,7 +36,6 @@ export default function EnhancedTable() {
   }, []);
 
   useEffect(() => {
-    // Compute filtered and sorted data based on current state
     const filteredRows = originalRows.filter(row => {
       if (!monthFilter && !yearFilter) return true;
       const lessonDate = new Date(row.lessondate);
@@ -118,7 +49,6 @@ export default function EnhancedTable() {
     setRows(sortedRows);
   }, [originalRows, order, orderBy, monthFilter, yearFilter]);
 
-  // Slice the rows for pagination
   const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleRequestSort = (event, property) => {
@@ -133,13 +63,12 @@ export default function EnhancedTable() {
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to the first page when changing rows per page
+    setPage(0);
   };
 
   const handleEditClick = (index) => {
-    console.log(rows)
     setEditableRow(index);
-    setEditData({ ...paginatedRows[index] }); // Sync editData with displayed row
+    setEditData({ ...paginatedRows[index] });
   };
 
   const handleInputChange = (event) => {
@@ -153,8 +82,6 @@ export default function EnhancedTable() {
   const handleSaveChanges = async () => {
     try {
       await axios.put(`http://localhost:5000/update_lesson/${paginatedRows[editableRow]._id}`, editData);
-  
-      // Update rows with the new data
       const updatedRows = rows.map((row, index) =>
         index === editableRow ? { ...editData } : row
       );
@@ -165,7 +92,6 @@ export default function EnhancedTable() {
       console.error('Error updating data:', error);
     }
   };
-  
 
   return (
     <Paper sx={{ width: '100%', mb: 2 }}>
@@ -175,7 +101,7 @@ export default function EnhancedTable() {
         onChange={(e) => setMonthFilter(e.target.value)}
         sx={{ m: 2, width: 200}}
         type='number'
-        inputProps={{ min: 1, max: 12, step: 1 }} // Restrict month filter input
+        inputProps={{ min: 1, max: 12, step: 1 }}
       />
       <TextField
         label="Filter by Year"
@@ -183,7 +109,7 @@ export default function EnhancedTable() {
         onChange={(e) => setYearFilter(e.target.value)}
         sx={{ m: 2 , width: 200}}
         type='number'
-        inputProps={{ min: 1900, max: new Date().getFullYear() }} // Restrict year filter input
+        inputProps={{ min: 1900, max: new Date().getFullYear() }}
       />
       <TableContainer>
         <Table>
@@ -192,103 +118,14 @@ export default function EnhancedTable() {
             orderBy={orderBy}
             onRequestSort={handleRequestSort}
           />
-         <TableBody>
-          {paginatedRows.map((row, index) => (
-            <TableRow hover key={row._id}> {/* Use row._id as key */}
-              <TableCell>
-                {editableRow === index ? (
-                  <TextField
-                    name="name"
-                    value={editData.name || ''}
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  row.name
-                )}
-              </TableCell>
-              <TableCell>
-                {editableRow === index ? (
-                  <TextField
-                    name="price"
-                    type="number"
-                    value={editData.price || ''}
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  row.price
-                )}
-              </TableCell>
-              <TableCell>
-                {editableRow === index ? (
-                  <TextField
-                    name="payment"
-                    type="number"
-                    value={editData.payment || ''}
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  row.payment
-                )}
-              </TableCell>
-              <TableCell>
-                {editableRow === index ? (
-                  <TextField
-                    name="lessondate"
-                    type="date"
-                    value={editData.lessondate || ''}
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  row.lessondate
-                )}
-              </TableCell>
-              <TableCell>
-                {editableRow === index ? (
-                  <TextField
-                    name="date"
-                    type="date"
-                    value={editData.date || ''}
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  row.date
-                )}
-              </TableCell>
-              <TableCell>
-                {editableRow === index ? (
-                  <TextField
-                    name="payment_method"
-                    value={editData.payment_method || ''}
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  row.payment_method
-                )}
-              </TableCell>
-              <TableCell>
-                {editableRow === index ? (
-                  <Checkbox
-                    name="reception"
-                    checked={editData.reception || false}
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  <Checkbox
-                    checked={row.reception}
-                    disabled
-                  />
-                )}
-              </TableCell>
-              <TableCell>
-                {editableRow === index ? (
-                  <Button onClick={handleSaveChanges}>Save</Button>
-                ) : (
-                  <Button onClick={() => handleEditClick(index)}>Edit</Button>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+          <EnhancedTableBody
+            rows={paginatedRows}
+            editableRow={editableRow}
+            editData={editData}
+            handleEditClick={handleEditClick}
+            handleInputChange={handleInputChange}
+            handleSaveChanges={handleSaveChanges}
+          />
         </Table>
       </TableContainer>
       <TablePagination
@@ -303,3 +140,5 @@ export default function EnhancedTable() {
     </Paper>
   );
 }
+
+export default EnhancedTable;
