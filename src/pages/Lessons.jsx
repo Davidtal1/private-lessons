@@ -19,8 +19,9 @@ const headCells = [
   { id: 'name', label: 'Name' },
   { id: 'price', label: 'Price for lesson' },
   { id: 'payment', label: 'Pay in this lesson' },
-  { id: 'lessondate', label: 'Lesson Date' },
+  { id: 'lessonDate', label: 'Lesson Date' },
   { id: 'date', label: 'Date of payment' },
+  { id: 'payment_method', label: 'Method pay' },
   { id: 'reception', label: 'Reception' },
 ];
 
@@ -83,6 +84,7 @@ export default function EnhancedTable() {
   const [orderBy, setOrderBy] = useState('name');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [originalRows, setOriginalRows] = useState([]);
   const [rows, setRows] = useState([]);
   const [editableRow, setEditableRow] = useState(null);
   const [editData, setEditData] = useState({});
@@ -93,13 +95,31 @@ export default function EnhancedTable() {
     const fetchData = async () => {
       try {
         const response = await axios.get('http://localhost:5000/get_lessons');
-        setRows(response.data);
+        setOriginalRows(response.data); // Store the original data
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    // Compute filtered and sorted data based on current state
+    const filteredRows = originalRows.filter(row => {
+      if (!monthFilter && !yearFilter) return true;
+      const lessonDate = new Date(row.lessondate);
+      const filterDate = new Date(`${yearFilter}-${monthFilter}-01`);
+      const matchesMonth = !monthFilter || lessonDate.getMonth() === filterDate.getMonth();
+      const matchesYear = !yearFilter || lessonDate.getFullYear() === filterDate.getFullYear();
+      return matchesMonth && matchesYear;
+    });
+
+    const sortedRows = stableSort(filteredRows, getComparator(order, orderBy));
+    setRows(sortedRows);
+  }, [originalRows, order, orderBy, monthFilter, yearFilter]);
+
+  // Slice the rows for pagination
+  const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -113,13 +133,13 @@ export default function EnhancedTable() {
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    setPage(0); // Reset to the first page when changing rows per page
   };
 
   const handleEditClick = (index) => {
-    const globalIndex = page * rowsPerPage + index;
-    setEditableRow(globalIndex);
-    setEditData({ ...rows[globalIndex] });
+    console.log(rows)
+    setEditableRow(index);
+    setEditData({ ...paginatedRows[index] }); // Sync editData with displayed row
   };
 
   const handleInputChange = (event) => {
@@ -132,17 +152,20 @@ export default function EnhancedTable() {
 
   const handleSaveChanges = async () => {
     try {
-      await axios.put(`http://localhost:5000/update_lesson/${editData._id}`, editData);
+      await axios.put(`http://localhost:5000/update_lesson/${paginatedRows[editableRow]._id}`, editData);
+  
+      // Update rows with the new data
       const updatedRows = rows.map((row, index) =>
         index === editableRow ? { ...editData } : row
       );
-      setRows(updatedRows);
+      setOriginalRows(updatedRows);
       setEditableRow(null);
       setEditData({});
     } catch (error) {
       console.error('Error updating data:', error);
     }
   };
+  
 
   return (
     <Paper sx={{ width: '100%', mb: 2 }}>
@@ -150,15 +173,17 @@ export default function EnhancedTable() {
         label="Filter by Month"
         value={monthFilter}
         onChange={(e) => setMonthFilter(e.target.value)}
-        sx={{ m: 2 }}
+        sx={{ m: 2, width: 200}}
         type='number'
+        inputProps={{ min: 1, max: 12, step: 1 }} // Restrict month filter input
       />
       <TextField
         label="Filter by Year"
         value={yearFilter}
         onChange={(e) => setYearFilter(e.target.value)}
-        sx={{ m: 2 }}
+        sx={{ m: 2 , width: 200}}
         type='number'
+        inputProps={{ min: 1900, max: new Date().getFullYear() }} // Restrict year filter input
       />
       <TableContainer>
         <Table>
@@ -167,111 +192,103 @@ export default function EnhancedTable() {
             orderBy={orderBy}
             onRequestSort={handleRequestSort}
           />
-          <TableBody>
-            {stableSort(
-              rows.filter(row => {
-                if (!monthFilter && !yearFilter) return true;
-                const lessonDate = new Date(row.lessondate);
-                const lessonMonth = lessonDate.getMonth() + 1; 
-                const lessonYear = lessonDate.getFullYear();
-                const paymentDate = new Date(row.date);
-                const paymentMonth = paymentDate.getMonth() + 1; 
-                const paymentYear = paymentDate.getFullYear();
-
-                return (yearFilter && (lessonYear === Number(yearFilter) || paymentYear === Number(yearFilter))) && 
-                       (monthFilter && (lessonMonth === Number(monthFilter) || paymentMonth === Number(monthFilter)));
-              }),
-              getComparator(order, orderBy)
-            )
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => {
-                const isRowEditable = editableRow === (page * rowsPerPage + index);
-                return (
-                  <TableRow hover key={index}>
-                    <TableCell>
-                      {isRowEditable ? (
-                        <TextField
-                          name="name"
-                          value={editData.name}
-                          onChange={handleInputChange}
-                        />
-                      ) : (
-                        row.name
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isRowEditable ? (
-                        <TextField
-                          name="price"
-                          type="number"
-                          value={editData.price}
-                          onChange={handleInputChange}
-                        />
-                      ) : (
-                        row.price
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isRowEditable ? (
-                        <TextField
-                          name="payment"
-                          type="number"
-                          value={editData.payment}
-                          onChange={handleInputChange}
-                        />
-                      ) : (
-                        row.payment
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isRowEditable ? (
-                        <TextField
-                          name="lessondate"
-                          type="date"
-                          value={editData.lessondate}
-                          onChange={handleInputChange}
-                        />
-                      ) : (
-                        row.lessondate
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isRowEditable ? (
-                        <TextField
-                          name="date"
-                          type="date"
-                          value={editData.date}
-                          onChange={handleInputChange}
-                        />
-                      ) : (
-                        row.date
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isRowEditable ? (
-                        <Checkbox
-                          name="reception"
-                          checked={editData.reception}
-                          onChange={handleInputChange}
-                        />
-                      ) : (
-                        <Checkbox
-                          checked={row.reception}
-                          disabled
-                        />
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isRowEditable ? (
-                        <Button onClick={handleSaveChanges}>Save</Button>
-                      ) : (
-                        <Button onClick={() => handleEditClick(index)}>Edit</Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-          </TableBody>
+         <TableBody>
+          {paginatedRows.map((row, index) => (
+            <TableRow hover key={row._id}> {/* Use row._id as key */}
+              <TableCell>
+                {editableRow === index ? (
+                  <TextField
+                    name="name"
+                    value={editData.name || ''}
+                    onChange={handleInputChange}
+                  />
+                ) : (
+                  row.name
+                )}
+              </TableCell>
+              <TableCell>
+                {editableRow === index ? (
+                  <TextField
+                    name="price"
+                    type="number"
+                    value={editData.price || ''}
+                    onChange={handleInputChange}
+                  />
+                ) : (
+                  row.price
+                )}
+              </TableCell>
+              <TableCell>
+                {editableRow === index ? (
+                  <TextField
+                    name="payment"
+                    type="number"
+                    value={editData.payment || ''}
+                    onChange={handleInputChange}
+                  />
+                ) : (
+                  row.payment
+                )}
+              </TableCell>
+              <TableCell>
+                {editableRow === index ? (
+                  <TextField
+                    name="lessondate"
+                    type="date"
+                    value={editData.lessondate || ''}
+                    onChange={handleInputChange}
+                  />
+                ) : (
+                  row.lessondate
+                )}
+              </TableCell>
+              <TableCell>
+                {editableRow === index ? (
+                  <TextField
+                    name="date"
+                    type="date"
+                    value={editData.date || ''}
+                    onChange={handleInputChange}
+                  />
+                ) : (
+                  row.date
+                )}
+              </TableCell>
+              <TableCell>
+                {editableRow === index ? (
+                  <TextField
+                    name="payment_method"
+                    value={editData.payment_method || ''}
+                    onChange={handleInputChange}
+                  />
+                ) : (
+                  row.payment_method
+                )}
+              </TableCell>
+              <TableCell>
+                {editableRow === index ? (
+                  <Checkbox
+                    name="reception"
+                    checked={editData.reception || false}
+                    onChange={handleInputChange}
+                  />
+                ) : (
+                  <Checkbox
+                    checked={row.reception}
+                    disabled
+                  />
+                )}
+              </TableCell>
+              <TableCell>
+                {editableRow === index ? (
+                  <Button onClick={handleSaveChanges}>Save</Button>
+                ) : (
+                  <Button onClick={() => handleEditClick(index)}>Edit</Button>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
         </Table>
       </TableContainer>
       <TablePagination
