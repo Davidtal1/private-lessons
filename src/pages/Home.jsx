@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Typography, Box } from "@mui/material";
 import PaymentDistribution from "../components/PaymentDistribution";
 import HomeCalc from "../components/HomeCalc";
+import axios from "axios";
 
 export default function Home() {
     const years = Array.from({ length: 51 }, (_, i) => 2000 + i);
@@ -12,25 +13,48 @@ export default function Home() {
 
     // State for controlling visibility of the result section
     const [showResult, setShowResult] = useState(false);
+    const [paymentData, setPaymentData] = useState([
+          { name: 'Bit', amount: 0 },
+          { name: 'Cash', amount: 0 },
+          { name: 'Paybox', amount: 0 },
+          { name: 'Bank Transfer', amount: 0 },
+          { name: 'No pay', amount: 0 }
+        ]);
 
-    // Handler for button click
     const handleCalculate = () => {
         setShowResult(true);
         // Add logic to calculate profit here
     };
 
-    // Sample profit calculation (replace with actual logic)
     const calculateProfit = () => {
-        return 1000; // Replace this with actual calculation
+        var sum=0
+        paymentData.map(item=>sum+=item.amount)
+        return sum
     };
 
-    // Sample amounts received via different payment methods (replace with actual data)
-    const paymentData = [
-        { name: 'Bit', amount: 2000 },
-        { name: 'Cash', amount: 300 },
-        { name: 'Paybox', amount: 150 },
-        { name: 'Bank Transfer', amount: 350 }
-    ];
+
+    useEffect(() => {
+        const getAmountPerMonthAndYear = async (currentMonth, currentYear) => {
+          try {
+            const response = await axios.get('http://localhost:5000/get_amount', {
+              params: { currentMonth, currentYear }
+            });
+            console.log(response.data);
+    
+            // Map the response data to the paymentData format
+            const newPaymentData = Object.keys(response.data).map(key => ({
+              name: key,
+              amount: response.data[key]
+            }));
+    
+            setPaymentData(newPaymentData);
+          } catch (error) {
+            console.error('Error fetching amount:', error);
+          }
+        };
+    
+        getAmountPerMonthAndYear(currentMonth, currentYear);
+      }, [currentMonth, currentYear]);
 
     return (
         <div style={{ backgroundColor: '#b2dfdb', padding: '16px' }}>

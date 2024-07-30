@@ -7,7 +7,7 @@ import axios from 'axios';
 
 export default function Create() {
   const [selectedDate, setSelectedDate] = useState({ date: null, lessondate: null });
-  const [radioValue, setRadioValue] = useState("Cash");
+  const [radioValue, setRadioValue] = useState("Nopayment");
   const [textValues, setTextValues] = useState({
     name: "",
     price: "",
@@ -32,10 +32,10 @@ export default function Create() {
 
   const fields = [
     { id: "name", label: "Name" },
-    { id: "date", label: "Date of payment" },
+    { id: "lessondate", label: "Lesson Date" },
     { id: "price", label: "Price for lesson" },
     { id: "payment", label: "Pay in this lesson" },
-    { id: "lessondate", label: "Lesson Date" }
+    { id: "date", label: "Date of payment" },
   ];
 
   const radiobuttons = [

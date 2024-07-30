@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   Table,
   TableContainer,
@@ -13,15 +14,18 @@ import { stableSort, getComparator } from '../components/sortingUtils';
 
 const EnhancedTable = () => {
   const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('lessondate'); // Default sorting by lesson date
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [originalRows, setOriginalRows] = useState([]);
   const [rows, setRows] = useState([]);
   const [editableRow, setEditableRow] = useState(null);
   const [editData, setEditData] = useState({});
-  const [monthFilter, setMonthFilter] = useState('');
-  const [yearFilter, setYearFilter] = useState('');
+  const [filters, setFilters] = useState({
+    month: '',
+    year: '',
+    name: ''
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,20 +40,23 @@ const EnhancedTable = () => {
   }, []);
 
   useEffect(() => {
+    filterAndSortRows();
+  }, [originalRows, order, orderBy, filters]);
+
+  const filterAndSortRows = () => {
     const filteredRows = originalRows.filter(row => {
-      if (!monthFilter && !yearFilter) return true;
+      if (!filters.month && !filters.year && !filters.name) return true;
       const lessonDate = new Date(row.lessondate);
-      const filterDate = new Date(`${yearFilter}-${monthFilter}-01`);
-      const matchesMonth = !monthFilter || lessonDate.getMonth() === filterDate.getMonth();
-      const matchesYear = !yearFilter || lessonDate.getFullYear() === filterDate.getFullYear();
-      return matchesMonth && matchesYear;
+      const filterDate = new Date(`${filters.year}-${filters.month}-01`);
+      const matchesMonth = !filters.month || lessonDate.getMonth() === filterDate.getMonth();
+      const matchesYear = !filters.year || lessonDate.getFullYear() === filterDate.getFullYear();
+      const matchesName = !filters.name || row.name.toLowerCase().includes(filters.name.toLowerCase());
+      return matchesMonth && matchesYear && matchesName;
     });
 
     const sortedRows = stableSort(filteredRows, getComparator(order, orderBy));
     setRows(sortedRows);
-  }, [originalRows, order, orderBy, monthFilter, yearFilter]);
-
-  const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  };
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -68,7 +75,7 @@ const EnhancedTable = () => {
 
   const handleEditClick = (index) => {
     setEditableRow(index);
-    setEditData({ ...paginatedRows[index] });
+    setEditData({ ...rows[index] });
   };
 
   const handleInputChange = (event) => {
@@ -81,7 +88,7 @@ const EnhancedTable = () => {
 
   const handleSaveChanges = async () => {
     try {
-      await axios.put(`http://localhost:5000/update_lesson/${paginatedRows[editableRow]._id}`, editData);
+      await axios.put(`http://localhost:5000/update_lesson/${rows[editableRow]._id}`, editData);
       const updatedRows = rows.map((row, index) =>
         index === editableRow ? { ...editData } : row
       );
@@ -93,24 +100,19 @@ const EnhancedTable = () => {
     }
   };
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({
+      ...filters,
+      [name]: value
+    });
+  };
+
+  const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   return (
     <Paper sx={{ width: '100%', mb: 2 }}>
-      <TextField
-        label="Filter by Month"
-        value={monthFilter}
-        onChange={(e) => setMonthFilter(e.target.value)}
-        sx={{ m: 2, width: 200}}
-        type='number'
-        inputProps={{ min: 1, max: 12, step: 1 }}
-      />
-      <TextField
-        label="Filter by Year"
-        value={yearFilter}
-        onChange={(e) => setYearFilter(e.target.value)}
-        sx={{ m: 2 , width: 200}}
-        type='number'
-        inputProps={{ min: 1900, max: new Date().getFullYear() }}
-      />
+      <FilterFields filters={filters} onFilterChange={handleFilterChange} />
       <TableContainer>
         <Table>
           <EnhancedTableHead
@@ -140,5 +142,44 @@ const EnhancedTable = () => {
     </Paper>
   );
 }
+
+const FilterFields = ({ filters, onFilterChange }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px' }}>
+    <TextField
+      label="Filter by Name"
+      name="name"
+      value={filters.name}
+      onChange={onFilterChange}
+      sx={{ m: 2, width: 200 }}
+    />
+    <TextField
+      label="Filter by Month"
+      name="month"
+      value={filters.month}
+      onChange={onFilterChange}
+      type="number"
+      inputProps={{ min: 1, max: 12, step: 1 }}
+      sx={{ m: 2, width: 200 }}
+    />
+    <TextField
+      label="Filter by Year"
+      name="year"
+      value={filters.year}
+      onChange={onFilterChange}
+      type="number"
+      inputProps={{ min: 1900, max: new Date().getFullYear() }}
+      sx={{ m: 2, width: 200 }}
+    />
+  </div>
+);
+
+FilterFields.propTypes = {
+  filters: PropTypes.shape({
+    month: PropTypes.string,
+    year: PropTypes.string,
+    name: PropTypes.string,
+  }).isRequired,
+  onFilterChange: PropTypes.func.isRequired,
+};
 
 export default EnhancedTable;
