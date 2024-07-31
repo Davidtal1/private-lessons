@@ -4,6 +4,7 @@ import { Outlet, Link } from "react-router-dom";
 import HomeIcon from '@mui/icons-material/Home';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SubjectIcon from '@mui/icons-material/Subject';
+import CalculateIcon from '@mui/icons-material/Calculate';
 import { Resizable } from "react-resizable";
 import 'react-resizable/css/styles.css';
 
@@ -13,7 +14,8 @@ export default function Layout() {
     const menuItems = [
         { text: 'Home', icon: <HomeIcon />, path: '/' },
         { text: 'Add lesson', icon: <AddCircleOutlineIcon />, path: '/create' },
-        { text: 'My lessons', icon: <SubjectIcon />, path: '/lessons' }
+        { text: 'My lessons', icon: <SubjectIcon />, path: '/lessons' },
+        { text: 'Debt by name', icon: <CalculateIcon />, path: '/debts' }
     ];
 
     const DrawerList = (

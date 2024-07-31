@@ -12,11 +12,11 @@ mongo = PyMongo(app)
 
 def get_lessons():
     lessons = mongo.db.lessons.find()
-    lessons_list = []
+    all_lessons_list = []
     for lesson in lessons:
         lesson['_id'] = str(lesson['_id'])  
-        lessons_list.append(lesson)
-    return lessons_list
+        all_lessons_list.append(lesson)
+    return all_lessons_list
 
 @app.route('/add_lesson', methods=['POST'])
 def add_lesson():
