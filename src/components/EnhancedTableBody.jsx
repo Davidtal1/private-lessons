@@ -5,7 +5,9 @@ import {
   TableCell,
   TextField,
   Button,
-  Checkbox
+  Checkbox,
+  Select,
+  MenuItem
 } from '@mui/material';
 
 const EnhancedTableBody = ({
@@ -95,12 +97,18 @@ const EnhancedTableBody = ({
           </TableCell>
           <TableCell>
             {editableRow === index ? (
-              <TextField
+              <Select
                 name="payment_method"
                 value={editData.payment_method || ''}
                 onChange={handleInputChange}
                 sx={{ width: '100%' }}
-              />
+              >
+                <MenuItem value="Bit">Bit</MenuItem>
+                <MenuItem value="Paybox">Paybox</MenuItem>
+                <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
+                <MenuItem value="Cash">Cash</MenuItem>
+                <MenuItem value="No payment">No payment</MenuItem>
+              </Select>
             ) : (
               row.payment_method
             )}

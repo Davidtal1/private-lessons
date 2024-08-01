@@ -7,7 +7,7 @@ import axios from 'axios';
 
 export default function Create() {
   const [selectedDate, setSelectedDate] = useState({ date: null, lessondate: null });
-  const [radioValue, setRadioValue] = useState("Nopayment");
+  const [radioValue, setRadioValue] = useState("No payment");
   const [textValues, setTextValues] = useState({
     name: "",
     price: "",
@@ -43,7 +43,7 @@ export default function Create() {
     { value: "Bit", label: "Bit" },
     { value: "Paybox", label: "Paybox" },
     { value: "Bank transfer", label: "Bank transfer" },
-    { value: "Nopayment", label: "No payment" },
+    { value: "No payment", label: "No payment" },
   ];
 
   const handleSubmit = async () => {

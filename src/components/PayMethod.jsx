@@ -7,7 +7,7 @@ export default function Radiobutton({radiobuttons, radioValue, setRadioValue}) {
         <FormLabel>Pay method</FormLabel>
           <RadioGroup
             row
-            defaultValue="Nopayment"
+            defaultValue="No payment"
             name="radio-buttons-group"
             value={radioValue}
             onChange={(event) => setRadioValue(event.target.value)}

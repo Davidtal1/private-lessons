@@ -2,7 +2,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Typography, Box } from "@mui/material";
 
 const getBarColor = (name) => {
-    return name === 'Nopayment' ? '#ff4d4d' : '#82ca9d'; 
+    return name === 'No payment' ? '#ff4d4d' : '#82ca9d'; 
 };
 
 const preprocessData = (data) => {

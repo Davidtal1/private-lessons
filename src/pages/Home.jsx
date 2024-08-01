@@ -18,7 +18,7 @@ export default function Home() {
           { name: 'Cash', amount: 0 },
           { name: 'Paybox', amount: 0 },
           { name: 'Bank Transfer', amount: 0 },
-          { name: 'No pay', amount: 0 }
+          { name: 'No payment', amount: 0 }
         ]);
 
     const handleCalculate = () => {

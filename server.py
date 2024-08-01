@@ -77,7 +77,7 @@ def get_amount_per_month_and_year():
     year = int(request.args.get('currentYear'))
     lesson_list = get_lessons()
     filter_list=[]
-    dict_of_payment_and_payment_method={'Bit':0,'Cash': 0,'Paybox': 0,'Bank Transfer': 0,'Nopayment':0}
+    dict_of_payment_and_payment_method={'Bit':0,'Cash': 0,'Paybox': 0,'Bank Transfer': 0,'No payment':0}
     for lesson in lesson_list:
         if ((int(lesson["lessondate"].split('-')[0]) == year) and (int(lesson["lessondate"].split('-')[1])== month)):
             filter_list.append(lesson)
@@ -86,7 +86,7 @@ def get_amount_per_month_and_year():
         payment_method = filter_item['payment_method']
         payment_amount = int(filter_item['payment'])
         
-        if payment_method == "Nopayment":
+        if payment_method == "No payment":
             dict_of_payment_and_payment_method[payment_method] += int(filter_item['price'])
         else:
             dict_of_payment_and_payment_method[payment_method] += payment_amount
