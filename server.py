@@ -72,15 +72,21 @@ def update_lesson(id):
     
 @app.route('/get_amount', methods=['GET'])
 def get_amount_per_month_and_year():
-    sum=0
-    month = int(request.args.get('currentMonth'))
+
     year = int(request.args.get('currentYear'))
     lesson_list = get_lessons()
     filter_list=[]
     dict_of_payment_and_payment_method={'Bit':0,'Cash': 0,'Paybox': 0,'Bank Transfer': 0,'No payment':0}
-    for lesson in lesson_list:
-        if ((int(lesson["lessondate"].split('-')[0]) == year) and (int(lesson["lessondate"].split('-')[1])== month)):
-            filter_list.append(lesson)
+
+    if request.args.get('currentMonth') is None:
+        for lesson in lesson_list:
+            if (int(lesson["lessondate"].split('-')[0]) == year):
+                filter_list.append(lesson)
+    else:
+        month = int(request.args.get('currentMonth'))
+        for lesson in lesson_list:
+            if ((int(lesson["lessondate"].split('-')[0]) == year) and (int(lesson["lessondate"].split('-')[1])== month)):
+                filter_list.append(lesson)
 
     for filter_item in filter_list:
         payment_method = filter_item['payment_method']

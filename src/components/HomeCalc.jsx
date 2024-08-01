@@ -1,6 +1,6 @@
 import { TextField, Autocomplete, Typography, Button } from "@mui/material";
 
-export default function HomeCalxc({years, currentYear, setYear, months, setMonth, currentMonth, handleCalculate}) {
+export default function HomeCalc({years, currentYear, setYear, months, setMonth, currentMonth, handleCalculate}) {
     
     return (
         <div>
