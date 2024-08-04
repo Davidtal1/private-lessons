@@ -6,6 +6,7 @@ export default function Debts() {
   const [name, setName] = useState('');
   const [lessons, setLessons] = useState([]);
   const [debt, setDebt] = useState(null);
+  const [totalPaid, setTotalPaid] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +27,9 @@ export default function Debts() {
   const calculateDebt = useCallback((enteredName) => {
     const personLessons = lessons.filter(lesson => lesson.name.toLowerCase() === enteredName.toLowerCase());
     const totalDebt = personLessons.reduce((sum, lesson) => sum + (lesson.price - lesson.payment), 0);
+    const totalPaidAmount = personLessons.reduce((sum, lesson) => sum + lesson.payment, 0);
     setDebt(personLessons.length > 0 ? totalDebt : null);
+    setTotalPaid(personLessons.length > 0 ? totalPaidAmount : null);
   }, [lessons]);
 
   const onFilterChange = (event) => {
@@ -79,9 +82,16 @@ export default function Debts() {
           }}
         />
         {name && (
-          <Typography variant="h6" sx={{ mt: 2, color: debt !== null ? '#4caf50' : '#f44336' }}>
-            {debt !== null ? `${name} needs to pay you ₪${debt}` : `No lessons found for ${name}`}
-          </Typography>
+          <>
+            <Typography variant="h6" sx={{ mt: 2, color:  '#f44336' }}>
+              {debt !== null ? `${name} needs to pay you ₪${debt}` : `No lessons found for ${name}`}
+            </Typography>
+            {totalPaid !== null && (
+              <Typography variant="h6" sx={{ mt: 2, color: '#4caf50' }}>
+                {name} has paid you a total of ₪{totalPaid}
+              </Typography>
+            )}
+          </>
         )}
       </Paper>
     </Box>

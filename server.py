@@ -34,7 +34,7 @@ def get_lessons():
         query['name'] = {'$regex': name_filter, '$options': 'i'}
 
     # Fetch lessons with sorting and pagination
-    lessons = mongo.db.lessons.find(query).sort('lessondate', -1).skip(page * rows_per_page).limit(rows_per_page)
+    lessons = mongo.db.lessons.find(query).sort('_id', -1).skip(page * rows_per_page).limit(rows_per_page)
     total_lessons = mongo.db.lessons.count_documents(query)
     lessons_list = []
     for lesson in lessons:
