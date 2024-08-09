@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 from bson import ObjectId
-from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -35,6 +34,7 @@ def get_lessons():
 
     # Fetch lessons with sorting and pagination
     lessons = mongo.db.lessons.find(query).sort('_id', -1).skip(page * rows_per_page).limit(rows_per_page)
+    print(page * rows_per_page)
     total_lessons = mongo.db.lessons.count_documents(query)
     lessons_list = []
     for lesson in lessons:

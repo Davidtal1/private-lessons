@@ -7,7 +7,8 @@ import {
   Button,
   Checkbox,
   Select,
-  MenuItem
+  MenuItem,
+  Box
 } from '@mui/material';
 
 const EnhancedTableBody = ({
@@ -16,7 +17,8 @@ const EnhancedTableBody = ({
   editData,
   handleEditClick,
   handleInputChange,
-  handleSaveChanges
+  handleSaveChanges,
+  handleCancelClick
 }) => {
   return (
     <TableBody>
@@ -129,13 +131,27 @@ const EnhancedTableBody = ({
           </TableCell>
           <TableCell>
             {editableRow === index ? (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSaveChanges}
-              >
-                Save
-              </Button>
+              <>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: 'fit-content' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSaveChanges}
+                    sx={{ minWidth: 50 }}
+                  >
+                    Save
+                  </Button>
+                  
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={handleCancelClick}
+                    sx={{ minWidth: 50 }}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
+              </>
             ) : (
               <Button
                 variant="outlined"
