@@ -39,7 +39,7 @@ const EnhancedTableBody = ({
                 name="name"
                 value={editData.name || ''}
                 onChange={handleInputChange}
-                sx={{ width: '100%' }}
+                sx={{ width: '110px' }}
               />
             ) : (
               row.name

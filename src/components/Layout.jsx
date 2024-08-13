@@ -9,7 +9,7 @@ import { Resizable } from "react-resizable";
 import 'react-resizable/css/styles.css';
 
 export default function Layout() {
-    const [drawerWidth, setDrawerWidth] = useState(240);
+    const [drawerWidth, setDrawerWidth] = useState(160);
 
     const menuItems = [
         { text: 'Home', icon: <HomeIcon />, path: '/' },
