@@ -10,12 +10,13 @@ import axios from 'axios';
 import EnhancedTableHead from '../components/EnhancedTableHead';
 import EnhancedTableBody from '../components/EnhancedTableBody';
 import { stableSort, getComparator } from '../components/sortingUtils';
+import dayjs from 'dayjs';
 
 const EnhancedTable = () => {
   const [order, setOrder] = useState('desc');
-  const [orderBy, setOrderBy] = useState('lessondate');
+  const [orderBy, setOrderBy] = useState('lesson_date');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [originalRows, setOriginalRows] = useState([]);
   const [rows, setRows] = useState([]);
   const [editableRow, setEditableRow] = useState(null);
@@ -24,10 +25,11 @@ const EnhancedTable = () => {
   const [yearFilter, setYearFilter] = useState('');
   const [nameFilter, setNameFilter] = useState('');
 
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/get_all_lessons');
+        const response = await axios.get('http://localhost:5000/lessons');
         setOriginalRows(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -89,7 +91,13 @@ const EnhancedTable = () => {
 
   const handleSaveChanges = async () => {
     try {
-      await axios.put(`http://localhost:5000/update_lesson/${paginatedRows[editableRow]._id}`, editData);
+      const formattedData = {
+        ...editData,
+        lesson_date: editData.lesson_date ? new Date(dayjs(editData.lesson_date).format('YYYY-MM-DD')) : null,
+        payment_date: editData.payment_date ? new Date(dayjs(editData.payment_date).format('YYYY-MM-DD')) : null,
+      };
+      await axios.put(`http://localhost:5000/lessons/${paginatedRows[editableRow]._id}`, formattedData)
+      ;
       const updatedRows = rows.map((row, index) =>
         index === editableRow ? { ...editData } : row
       );
@@ -100,6 +108,7 @@ const EnhancedTable = () => {
       console.error('Error updating data:', error);
     }
   };
+  
 
   return (
     <Paper sx={{ width: '100%', mb: 2 }}>

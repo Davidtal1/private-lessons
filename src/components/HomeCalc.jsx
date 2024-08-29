@@ -1,49 +1,31 @@
-import { TextField, Autocomplete, Typography, Button } from "@mui/material";
+import React from "react";
+import { Typography, Box } from "@mui/material";
+import PaymentDistribution from "../components/PaymentDistribution"; // Make sure to adjust the import path if necessary
 
-export default function HomeCalc({years, currentYear, setYear, months, setMonth, currentMonth, handleCalculate}) {
-    
+const HomeCalc = ({ paymentData, startDate, endDate }) => {
+    const calculateProfit = () => {
+        return paymentData.reduce((sum, item) => sum + item.amount, 0);
+    };
+
     return (
         <div>
-              <Typography
-                variant="h4"
-                color="textSecondary"
-                gutterBottom
-                component="h2"
-                sx={{ textAlign: 'center' }} // Center align the heading
+            <Box
+                sx={{
+                    marginTop: '16px',
+                    padding: '16px',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '4px',
+                    textAlign: 'center',
+                    boxShadow: 3,
+                }}
             >
-                Calculate the profit
-            </Typography>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <Autocomplete
-                    disablePortal
-                    id="year-combo-box"
-                    options={years}
-                    value={currentYear}
-                    onChange={(event, newValue) => {
-                        setYear(newValue);
-                    }}
-                    sx={{ width: '100%' }} // Make input full width
-                    renderInput={(params) => <TextField {...params} label="Year" fullWidth />}
-                />
-
-                <Autocomplete
-                    disablePortal
-                    id="month-combo-box"
-                    options={months}
-                    value={currentMonth}
-                    onChange={(event, newValue) => {
-                        setMonth(newValue);
-                    }}
-                    sx={{ width: '100%' }} // Make input full width
-                    renderInput={(params) => <TextField {...params} label="Month" fullWidth />}
-                />
-
-                <Button variant="contained" onClick={handleCalculate} sx={{ backgroundColor: '#397145', color: 'black', width: '100%' }}>
-                    Calc
-                </Button>
-            </div>
+                <Typography variant="h6" color="textPrimary">
+                    Profit from {startDate ? startDate.format('MM/DD/YYYY') : ''} to {endDate ? endDate.format('MM/DD/YYYY') : ''}: ₪{calculateProfit()}
+                </Typography>
+            </Box>
+            <PaymentDistribution key={paymentData.name} paymentData={paymentData} />
         </div>
     );
-  }
-         
+};
+
+export default HomeCalc;

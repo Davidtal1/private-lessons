@@ -10,6 +10,7 @@ import {
   MenuItem,
   Box
 } from '@mui/material';
+import { format } from 'date-fns';
 
 const EnhancedTableBody = ({
   rows,
@@ -74,27 +75,27 @@ const EnhancedTableBody = ({
           <TableCell>
             {editableRow === index ? (
               <TextField
-                name="lessondate"
+                name="lesson_date"
                 type="date"
-                value={editData.lessondate || ''}
+                value={editData.lesson_date ? format(new Date(editData.lesson_date), 'yyyy-MM-dd') : null} 
                 onChange={handleInputChange}
                 sx={{ width: '100%' }}
               />
             ) : (
-              row.lessondate
+              format(new Date(row.lesson_date), 'yyyy-MM-dd')
             )}
           </TableCell>
           <TableCell>
             {editableRow === index ? (
               <TextField
-                name="date"
+                name="payment_date"
                 type="date"
-                value={editData.date || ''}
+                value={editData.payment_date ? format(new Date(editData.payment_date), 'yyyy-MM-dd') : null}
                 onChange={handleInputChange}
                 sx={{ width: '100%' }}
               />
             ) : (
-              row.date
+              row.payment_date ? format(new Date(row.payment_date), 'yyyy-MM-dd') : null
             )}
           </TableCell>
           <TableCell>

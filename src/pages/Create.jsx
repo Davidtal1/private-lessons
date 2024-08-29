@@ -1,13 +1,17 @@
 import React, { useState } from "react";
-import { Grid, Typography, Checkbox, FormControlLabel } from "@mui/material";
+import { Alert ,Grid, Typography, Checkbox, FormControlLabel } from "@mui/material";
 import FooterCreate from "../components/FooterCreate";
 import Texts from "../components/Texts";
 import PayMethod from "../components/PayMethod";
 import axios from 'axios';
+import dayjs from 'dayjs';
+
 
 export default function Create() {
-  const [selectedDate, setSelectedDate] = useState({ date: null, lessondate: null });
-  const [radioValue, setRadioValue] = useState("No payment");
+  const [selectedDate, setSelectedDate] = useState({ payment_date: null, lesson_date: null });
+  const [showAlert, setShowAlert] = useState(false);
+  const [nameAlert, setnameAlert] = useState('');
+  const [payment_method, setRadioValue] = useState("No payment");
   const [textValues, setTextValues] = useState({
     name: "",
     price: "",
@@ -17,7 +21,7 @@ export default function Create() {
 
   const handleChange = (event) => {
     const { id, value } = event.target;
-    if (id === "date" || id === "lessondate") {
+    if (id === "payment_date" || id === "lesson_date") {
       setSelectedDate((prevState) => ({
         ...prevState,
         [id]: value,
@@ -32,10 +36,10 @@ export default function Create() {
 
   const fields = [
     { id: "name", label: "Name" },
-    { id: "lessondate", label: "Lesson Date" },
+    { id: "lesson_date", label: "Lesson Date" },
     { id: "price", label: "Price for lesson" },
     { id: "payment", label: "Pay in this lesson" },
-    { id: "date", label: "Date of payment" },
+    { id: "payment_date", label: "Date of payment" },
   ];
 
   const radiobuttons = [
@@ -46,20 +50,33 @@ export default function Create() {
     { value: "No payment", label: "No payment" },
   ];
 
-  const handleSubmit = async () => {
-    try {
-      const data = {
-        selectedDate,
-        textValues,
-        radioValue,
-        reception
-      };
-      const response = await axios.post('http://localhost:5000/add_lesson', data);
-      console.log('Document inserted:', response.data);
-    } catch (error) {
-      console.error('Error inserting document:', error);
-    }
-  };
+
+
+const handleSubmit = async () => {
+  try {
+    const { lesson_date, payment_date } = selectedDate;
+    const { name, price, payment } = textValues;
+    
+    
+    const data = {
+      lesson_date: lesson_date ? new Date(dayjs(lesson_date).format('YYYY-MM-DD')) : null,
+      payment_date : payment_date ? new Date(dayjs(lesson_date).format('YYYY-MM-DD')) : null,
+      name,
+      price: Number(price),
+      payment: Number(payment),
+      payment_method,
+      reception
+    };
+    
+    const response = await axios.post('http://localhost:5000/lessons', data);
+    setShowAlert(true)
+    setnameAlert(data.name)
+    console.log('Document inserted:', response.data);
+  } catch (error) {
+    console.error('Error inserting document:', error);
+  }
+};
+
 
   return (
     <div>
@@ -77,9 +94,18 @@ export default function Create() {
             <Texts
               id={item.id}
               label={item.label}
-              value={item.id === "date" || item.id === "lessondate" ? selectedDate[item.id] : textValues[item.id]}
+              value={item.id === "payment_date" || item.id === "lesson_date" ? selectedDate[item.id] : textValues[item.id]}
               onChange={handleChange}
-              type={item.id === "date" || item.id === "lessondate" ? "date" : "text"}
+              type={
+                item.id === "payment" || item.id === "price"
+                  ? "number"
+                  : item.id === "payment_date" || item.id === "lesson_date"
+                  ? "date"
+                  : item.id === "reception"
+                  ? "checkbox"
+                  : "text"
+              }
+              
             />
           </Grid>
         ))}
@@ -88,7 +114,7 @@ export default function Create() {
         <Grid item xs={12} md={6}>
           <PayMethod
             radiobuttons={radiobuttons}
-            radioValue={radioValue}
+            radioValue={payment_method}
             setRadioValue={setRadioValue}
           />
         </Grid>
@@ -99,6 +125,8 @@ export default function Create() {
           />
         </Grid>
       </Grid>
+      {showAlert && 
+      <Alert severity="success">The lesson for {nameAlert} is inserted</Alert>}
       <FooterCreate handleSubmit={handleSubmit} />
     </div>
   );

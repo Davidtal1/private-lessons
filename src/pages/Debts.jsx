@@ -12,7 +12,7 @@ export default function Debts() {
   useEffect(() => {
     const fetchLessons = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/get_all_lessons');
+        const response = await axios.get('http://localhost:5000/lessons');
         setLessons(response.data);
         setLoading(false);
       } catch (error) {

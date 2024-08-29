@@ -2,17 +2,19 @@ import React from "react";
 import { TextField } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from 'dayjs';
+
 
 export default function Texts({ id, label, value, onChange, type}) {
   if (type === "date") {
     return (
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DatePicker
           label={label}
-          value={value ? value : null}
-          onChange={(newValue) => onChange({ target: { id, value: newValue ? newValue.format("YYYY-MM-DD") : "" } })}
+          value={value ? dayjs(value) : null}
+          onChange={(newValue) => onChange({ target: { id, value: newValue } })}
         />
-      </LocalizationProvider>
+    </LocalizationProvider>
     );
   }
   

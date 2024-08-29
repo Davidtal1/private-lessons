@@ -1,93 +1,75 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Box } from "@mui/material";
-import PaymentDistribution from "../components/PaymentDistribution";
-import HomeCalc from "../components/HomeCalc";
+import { Typography, Box, TextField, Button } from "@mui/material";
 import axios from "axios";
+import { DatePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import HomeCalc from "../components/HomeCalc";
 
 export default function Home() {
-    const years = Array.from({ length: 51 }, (_, i) => 2000 + i);
-    const [currentYear, setYear] = useState(new Date().getFullYear());
-
-    const months = Array.from({ length: 12 }, (_, i) => 1 + i);
-    const [currentMonth, setMonth] = useState(new Date().getMonth() + 1);
-
-    // State for controlling visibility of the result section
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
     const [showResult, setShowResult] = useState(false);
-    const [paymentData, setPaymentData] = useState([
-          { name: 'Bit', amount: 0 },
-          { name: 'Cash', amount: 0 },
-          { name: 'Paybox', amount: 0 },
-          { name: 'Bank Transfer', amount: 0 },
-          { name: 'No payment', amount: 0 }
-        ]);
+    const [paymentData, setPaymentData] = useState([]);
 
     const handleCalculate = () => {
         setShowResult(true);
-        // Add logic to calculate profit here
     };
 
-    const calculateProfit = () => {
-        var sum=0
-        paymentData.map(item=>sum+=item.amount)
-        return sum
+    const fetchPaymentData = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/payment_amount', {
+                params: {
+                    startDate: new Date(startDate),
+                    endDate: new Date(endDate)
+                }
+            });
+            setPaymentData(Object.keys(response.data).map(key => ({
+                name: key,
+                amount: response.data[key]
+            })));
+        } catch (error) {
+            console.error('Error fetching amount:', error);
+        }
     };
-
 
     useEffect(() => {
-        const getAmountPerMonthAndYear = async (currentMonth, currentYear) => {
-          try {
-            const response = await axios.get('http://localhost:5000/get_amount', {
-              params: { currentMonth, currentYear }
-            });
-            console.log(response.data);
-    
-            // Map the response data to the paymentData format
-            const newPaymentData = Object.keys(response.data).map(key => ({
-              name: key,
-              amount: response.data[key]
-            }));
-    
-            setPaymentData(newPaymentData);
-          } catch (error) {
-            console.error('Error fetching amount:', error);
-          }
-        };
-    
-        getAmountPerMonthAndYear(currentMonth, currentYear);
-      }, [currentMonth, currentYear]);
+        if (startDate && endDate) {
+            fetchPaymentData();
+        }
+    }, [startDate, endDate]);
 
     return (
         <div style={{ backgroundColor: '#b2dfdb', padding: '16px' }}>
-            <HomeCalc
-            key={currentYear}
-            years={years}
-            currentYear={currentYear}
-            setYear={setYear}
-            months={months}
-            setMonth={setMonth} 
-            currentMonth={currentMonth} 
-            handleCalculate={handleCalculate}
-            ></HomeCalc>
+            <Box display="flex" flexDirection="column" gap={2} mb={2}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                        label="Start Date"
+                        value={startDate}
+                        onChange={(newValue) => setStartDate(newValue ? dayjs(newValue).startOf('day') : null)}
+                        renderInput={(params) => <TextField {...params} />}
+                    />
+                    <DatePicker
+                        label="End Date"
+                        value={endDate}
+                        onChange={(newValue) => setEndDate(newValue ? dayjs(newValue).endOf('day') : null)}
+                        renderInput={(params) => <TextField {...params} />}
+                    />
+                </LocalizationProvider>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleCalculate}
+                    disabled={!startDate || !endDate}
+                >
+                    Calculate
+                </Button>
+            </Box>
 
             {showResult && (
-            <div>
-                <Box
-                    sx={{
-                        marginTop: '16px',
-                        padding: '16px',
-                        backgroundColor: '#ffffff',
-                        borderRadius: '4px',
-                        textAlign: 'center',
-                        boxShadow: 3,
-                    }}
-                >
-                    <Typography variant="h6" color="textPrimary">
-                        Profit for {currentMonth}/{currentYear}: ₪{calculateProfit()}
-                    </Typography>
-                </Box>
-                <PaymentDistribution key={paymentData.name} paymentData={paymentData}/>
-            </div>
-                )}
+                <HomeCalc paymentData={paymentData} startDate={startDate} endDate={endDate} />
+            )}
         </div>
     );
 }
