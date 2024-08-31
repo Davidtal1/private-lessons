@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Box, TextField, Button } from "@mui/material";
+import { Box, TextField, Button } from "@mui/material";
 import axios from "axios";
 import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -21,8 +21,8 @@ export default function Home() {
         try {
             const response = await axios.get('http://localhost:5000/payment_amount', {
                 params: {
-                    startDate: new Date(startDate),
-                    endDate: new Date(endDate)
+                    startDate: new Date(dayjs(startDate).format('YYYY-MM-DD')),
+                    endDate: new Date(dayjs(endDate + 1).format('YYYY-MM-DD')),
                 }
             });
             setPaymentData(Object.keys(response.data).map(key => ({

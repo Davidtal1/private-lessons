@@ -1,6 +1,6 @@
 import React from "react";
 import { Typography, Box } from "@mui/material";
-import PaymentDistribution from "../components/PaymentDistribution"; // Make sure to adjust the import path if necessary
+import PaymentDistribution from "./PaymentDistribution"; // Make sure to adjust the import path if necessary
 
 const HomeCalc = ({ paymentData, startDate, endDate }) => {
     const calculateProfit = () => {

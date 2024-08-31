@@ -1,12 +1,12 @@
 import datetime
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Query, Body, Path
+from fastapi import FastAPI, Body, Path
 from fastapi.middleware.cors import CORSMiddleware
 import mongodb_client
 from models import LessonUpdateData, Lesson
 from mongodb_client import insert_lesson, get_lessons
-import pytz
+import uvicorn
 
 app = FastAPI()
 
@@ -67,16 +67,19 @@ async def get_amount_per_month_and_year(
     for lesson in lessons:
         payment_method = lesson['payment_method']
         payment_amount = int(lesson['payment'])
+        price_lesson = int(lesson['price'])
 
         if payment_method == "No payment":
-            dict_of_payment_and_payment_method[payment_method] += int(lesson['price'])
+            dict_of_payment_and_payment_method[payment_method] += price_lesson
         else:
+            if payment_amount > price_lesson:
+                print(dict_of_payment_and_payment_method["No payment"],lesson["name"])
+                dict_of_payment_and_payment_method["No payment"] -= payment_amount - price_lesson
+                print(dict_of_payment_and_payment_method["No payment"])
             dict_of_payment_and_payment_method[payment_method] += payment_amount
 
     return dict_of_payment_and_payment_method
 
 
 if __name__ == '__main__':
-    import uvicorn
-
     uvicorn.run(app, host='0.0.0.0', port=5000)

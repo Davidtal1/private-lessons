@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Table,
-  TableContainer,
-  Paper,
-  TextField,
-  TablePagination
-} from '@mui/material';
+import { Paper, TextField, TableContainer, Table, TablePagination } from '@mui/material';
 import axios from 'axios';
 import EnhancedTableHead from '../components/EnhancedTableHead';
 import EnhancedTableBody from '../components/EnhancedTableBody';
 import { stableSort, getComparator } from '../components/sortingUtils';
 import dayjs from 'dayjs';
+import Filters from '../components/Filters';
 
 const EnhancedTable = () => {
   const [order, setOrder] = useState('desc');
@@ -24,7 +19,6 @@ const EnhancedTable = () => {
   const [monthFilter, setMonthFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
   const [nameFilter, setNameFilter] = useState('');
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +59,6 @@ const EnhancedTable = () => {
     setEditableRow(null);
     setEditData({});
   };
-  
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -96,8 +89,7 @@ const EnhancedTable = () => {
         lesson_date: editData.lesson_date ? new Date(dayjs(editData.lesson_date).format('YYYY-MM-DD')) : null,
         payment_date: editData.payment_date ? new Date(dayjs(editData.payment_date).format('YYYY-MM-DD')) : null,
       };
-      await axios.put(`http://localhost:5000/lessons/${paginatedRows[editableRow]._id}`, formattedData)
-      ;
+      await axios.put(`http://localhost:5000/lessons/${paginatedRows[editableRow]._id}`, formattedData);
       const updatedRows = rows.map((row, index) =>
         index === editableRow ? { ...editData } : row
       );
@@ -108,34 +100,17 @@ const EnhancedTable = () => {
       console.error('Error updating data:', error);
     }
   };
-  
 
   return (
     <Paper sx={{ width: '100%', mb: 2 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px' }}>
-        <TextField
-          label="Filter by Name"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-          sx={{ m: 2, width: 200 }}
-        />
-        <TextField
-          label="Filter by Month"
-          value={monthFilter}
-          onChange={(e) => setMonthFilter(e.target.value)}
-          sx={{ m: 2, width: 200 }}
-          type='number'
-          inputProps={{ min: 1, max: 12, step: 1 }}
-        />
-        <TextField
-          label="Filter by Year"
-          value={yearFilter}
-          onChange={(e) => setYearFilter(e.target.value)}
-          sx={{ m: 2, width: 200 }}
-          type='number'
-          inputProps={{ min: 1900, max: new Date().getFullYear() }}
-        />
-      </div>
+      <Filters
+        nameFilter={nameFilter}
+        setNameFilter={setNameFilter}
+        monthFilter={monthFilter}
+        setMonthFilter={setMonthFilter}
+        yearFilter={yearFilter}
+        setYearFilter={setYearFilter}
+      />
       <TableContainer>
         <Table>
           <EnhancedTableHead
@@ -165,6 +140,6 @@ const EnhancedTable = () => {
       />
     </Paper>
   );
-}
+};
 
 export default EnhancedTable;
