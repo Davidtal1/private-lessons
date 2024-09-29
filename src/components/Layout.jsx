@@ -7,6 +7,7 @@ import SubjectIcon from '@mui/icons-material/Subject';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import { Resizable } from "react-resizable";
 import 'react-resizable/css/styles.css';
+import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined';
 
 export default function Layout() {
     const [drawerWidth, setDrawerWidth] = useState(160);
@@ -15,7 +16,9 @@ export default function Layout() {
         { text: 'Home', icon: <HomeIcon />, path: '/' },
         { text: 'Add lesson', icon: <AddCircleOutlineIcon />, path: '/create' },
         { text: 'My lessons', icon: <SubjectIcon />, path: '/lessons' },
-        { text: 'Debt by name', icon: <CalculateIcon />, path: '/debts' }
+        { text: 'Debt by name', icon: <CalculateIcon />, path: '/debts' },
+        { text: 'Payments', icon: <PaidOutlinedIcon />, path: '/payments' }
+
     ];
 
     const DrawerList = (

@@ -73,9 +73,7 @@ async def get_amount_per_month_and_year(
             dict_of_payment_and_payment_method[payment_method] += price_lesson
         else:
             if payment_amount > price_lesson:
-                print(dict_of_payment_and_payment_method["No payment"],lesson["name"])
                 dict_of_payment_and_payment_method["No payment"] -= payment_amount - price_lesson
-                print(dict_of_payment_and_payment_method["No payment"])
             dict_of_payment_and_payment_method[payment_method] += payment_amount
 
     return dict_of_payment_and_payment_method

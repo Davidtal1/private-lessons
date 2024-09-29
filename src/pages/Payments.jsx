@@ -1,12 +1,12 @@
-import { Box, TextField, Typography, CircularProgress, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow } from "@mui/material";
+import { Box, TextField, Typography, CircularProgress, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-export default function Debts() {
+export default function Payments() {
   const [name, setName] = useState('');
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [debts, setDebts] = useState([]);
+  const [payments, setPayments] = useState([]);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -23,45 +23,37 @@ export default function Debts() {
     fetchLessons();
   }, []);
 
-  const calculateDebts = useCallback(() => {
-    const debtors = lessons.reduce((acc, lesson) => {
-      const { name, price, payment } = lesson;
-      const debtForThisLesson = price - payment; // Could be positive (debt) or negative (overpayment)
-  
-      const existingDebtor = acc.find(debtor => debtor.name.toLowerCase() === name.toLowerCase());
-      if (existingDebtor) {
-        existingDebtor.debt += debtForThisLesson;
+  const calculatePayments = useCallback(() => {
+    const payers = lessons.reduce((acc, lesson) => {
+      const { name, payment } = lesson;
+
+      const existingPayer = acc.find(payer => payer.name.toLowerCase() === name.toLowerCase());
+      if (existingPayer) {
+        existingPayer.totalPaid += payment;
       } else {
-        acc.push({ name, debt: debtForThisLesson });
+        acc.push({ name, totalPaid: payment });
       }
-  
+
       return acc;
     }, []);
-  
-    // Only include debtors with non-zero debts (either positive or negative)
-    setDebts(debtors.filter(debtor => debtor.debt !== 0));
+
+    setPayments(payers);
   }, [lessons]);
-  
 
   useEffect(() => {
-    calculateDebts();
-  }, [lessons, calculateDebts]);
+    calculatePayments();
+  }, [lessons, calculatePayments]);
 
   const onFilterChange = (event) => {
     const enteredName = event.target.value;
     setName(enteredName);
   };
 
-  const getTotalDebt = () => {
-    return debts.reduce((sum, debtor) => sum + debtor.debt, 0);
-  };
-
   if (loading) {
     return <CircularProgress />;
   }
 
-  const filteredDebts = debts.filter(debtor => debtor.name.toLowerCase().includes(name.toLowerCase()));
-  const totalDebt = getTotalDebt();
+  const filteredPayments = payments.filter(payer => payer.name.toLowerCase().includes(name.toLowerCase()));
 
   return (
     <Box
@@ -102,38 +94,28 @@ export default function Debts() {
             }
           }}
         />
-        {filteredDebts.length > 0 ? (
+        {filteredPayments.length > 0 ? (
           <TableContainer component={Paper} sx={{ mt: 3 }}>
             <Table>
               <TableHead>
                 <TableRow>
                   <TableCell><Typography variant="h6">Name</Typography></TableCell>
-                  <TableCell><Typography variant="h6">Amount Owed (₪)</Typography></TableCell>
+                  <TableCell><Typography variant="h6">Total Paid (₪)</Typography></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredDebts.map((debtor, index) => (
+                {filteredPayments.map((payer, index) => (
                   <TableRow key={index}>
-                    <TableCell>{debtor.name}</TableCell>
-                    <TableCell
-                      sx={{ color: debtor.debt < 0 ? 'red' : 'inherit' }}
-                    >
-                      {debtor.debt}
-                    </TableCell>
+                    <TableCell>{payer.name}</TableCell>
+                    <TableCell>{payer.totalPaid}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell><Typography variant="h6">Total Debt</Typography></TableCell>
-                  <TableCell><Typography variant="h6">₪{totalDebt}</Typography></TableCell>
-                </TableRow>
-              </TableFooter>
             </Table>
           </TableContainer>
         ) : (
           <Typography variant="h6" sx={{ mt: 2, color: '#f44336' }}>
-            {name ? `No debtors found for ${name}` : "No debtors found"}
+            {name ? `No payments found for ${name}` : "No payments found"}
           </Typography>
         )}
       </Paper>
