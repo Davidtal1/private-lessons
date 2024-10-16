@@ -11,7 +11,7 @@ const EnhancedTable = () => {
   const [order, setOrder] = useState('desc');
   const [orderBy, setOrderBy] = useState('lesson_date');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(30);
   const [originalRows, setOriginalRows] = useState([]);
   const [rows, setRows] = useState([]);
   const [editableRow, setEditableRow] = useState(null);
